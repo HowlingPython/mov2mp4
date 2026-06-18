@@ -12,7 +12,9 @@ from .opener import open_folder
 
 
 class ConverterGUI(tk.Tk):
-    NORMAL_AREA_RATIO = 0.20
+    NORMAL_AREA_RATIO = 0.04
+    MIN_FONT_SIZE = 9
+    MAX_FONT_SIZE = 32
 
     def __init__(self, settings, logger):
         super().__init__()
@@ -24,15 +26,17 @@ class ConverterGUI(tk.Tk):
         self.out_dir = None
         self.crf_value = str(settings.default_crf)
         self.preset_value = settings.default_preset
-        self.ui_scale = 1.0
+
+        default_font_size = getattr(settings, "default_font_size", 14)
+        self.font_size_var = tk.StringVar(value=str(default_font_size))
 
         self.title("MOV → MP4 Converter")
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
-        self._configure_fonts()
         self._configure_window()
-        self._configure_styles()
+        self._configure_fonts()
         self._build_layout()
+        self._apply_font_size()
 
         self.bind("<Configure>", self._on_resize)
 
@@ -53,11 +57,11 @@ class ConverterGUI(tk.Tk):
         width = int(screen_w * side_ratio)
         height = int(screen_h * side_ratio)
 
-        width = max(460, min(width, int(screen_w * 0.95)))
-        height = max(260, min(height, int(screen_h * 0.9)))
+        width = max(520, min(width, int(screen_w * 0.95)))
+        height = max(320, min(height, int(screen_h * 0.90)))
 
-        min_width = min(width, max(420, int(screen_w * 0.25)))
-        min_height = min(height, max(220, int(screen_h * 0.22)))
+        min_width = min(width, max(440, int(screen_w * 0.25)))
+        min_height = min(height, max(280, int(screen_h * 0.22)))
 
         self.geometry(self._geometry_centered(width, height))
         self.minsize(min_width, min_height)
@@ -70,55 +74,54 @@ class ConverterGUI(tk.Tk):
         default = tkfont.nametofont("TkDefaultFont")
         family = default.actual("family")
 
-        self.font_title = tkfont.Font(family=family, size=12, weight="bold")
-        self.font_normal = tkfont.Font(family=family, size=10)
-        self.font_button = tkfont.Font(family=family, size=10)
-        self.font_status = tkfont.Font(family=family, size=10)
-
-    def _configure_styles(self):
-        self.style = ttk.Style(self)
-        self.style.configure("TFrame")
-        self.style.configure("TLabel", font=self.font_normal)
-        self.style.configure("TButton", font=self.font_button)
-        self.style.configure("TEntry", font=self.font_normal)
-        self.style.configure("TCombobox", font=self.font_normal)
-        self.style.configure("Title.TLabel", font=self.font_title)
-        self.style.configure("Status.TLabel", font=self.font_status)
+        self.font_title = tkfont.Font(family=family, size=18, weight="bold")
+        self.font_text = tkfont.Font(family=family, size=14)
+        self.font_button = tkfont.Font(family=family, size=14)
+        self.font_small = tkfont.Font(family=family, size=12)
 
     def _build_layout(self):
-        self.main = ttk.Frame(self)
+        self.main = tk.Frame(self)
         self.main.grid(row=0, column=0, sticky="nsew")
 
         self.main.columnconfigure(0, weight=1)
         self.main.rowconfigure(5, weight=1)
 
         self.status_var = tk.StringVar(value="Listo.")
+        self.help_var = tk.StringVar(
+            value=(
+                "CRF: 0–51, menor valor implica mayor calidad y archivos más grandes. "
+                "Preset: controla velocidad de codificación contra compresión."
+            )
+        )
 
-        self.title_label = ttk.Label(
+        self.title_label = tk.Label(
             self.main,
             text="MOV → MP4 Converter",
-            style="Title.TLabel",
+            font=self.font_title,
             anchor="center",
         )
         self.title_label.grid(row=0, column=0, sticky="ew")
 
-        self.btn_quality = ttk.Button(
+        self.btn_quality = tk.Button(
             self.main,
             text="Ajustes de calidad",
+            font=self.font_button,
             command=self.show_quality_settings,
         )
         self.btn_quality.grid(row=1, column=0, sticky="ew")
 
-        self.btn_convert = ttk.Button(
+        self.btn_convert = tk.Button(
             self.main,
             text="Seleccionar y convertir",
+            font=self.font_button,
             command=self.start,
         )
         self.btn_convert.grid(row=2, column=0, sticky="ew")
 
-        self.btn_cancel = ttk.Button(
+        self.btn_cancel = tk.Button(
             self.main,
             text="Cancelar",
+            font=self.font_button,
             state="disabled",
             command=self.cancel,
         )
@@ -131,58 +134,131 @@ class ConverterGUI(tk.Tk):
         )
         self.progress.grid(row=4, column=0, sticky="ew")
 
-        self.status_label = ttk.Label(
+        self.status_label = tk.Label(
             self.main,
             textvariable=self.status_var,
-            style="Status.TLabel",
+            font=self.font_text,
             anchor="center",
             justify="center",
         )
         self.status_label.grid(row=5, column=0, sticky="nsew")
 
-        self._apply_scale()
+        self.bottom = tk.Frame(self.main)
+        self.bottom.grid(row=6, column=0, sticky="ew")
 
-    def _px(self, value):
-        return max(1, int(round(value * self.ui_scale)))
+        self.bottom.columnconfigure(0, weight=1)
+        self.bottom.columnconfigure(1, weight=0)
 
-    def _compute_scale(self):
-        screen_w, screen_h = self._screen_size()
-        width = max(1, self.winfo_width())
-        height = max(1, self.winfo_height())
+        self.help_bar = tk.Label(
+            self.bottom,
+            textvariable=self.help_var,
+            font=self.font_small,
+            anchor="w",
+            justify="left",
+            relief="groove",
+        )
+        self.help_bar.grid(row=0, column=0, sticky="ew")
 
-        screen_scale = min(screen_w / 1920, screen_h / 1080)
-        window_ratio = min(width / screen_w, height / screen_h)
-        normal_ratio = self.NORMAL_AREA_RATIO ** 0.5
+        self.font_frame = tk.Frame(self.bottom)
+        self.font_frame.grid(row=0, column=1, sticky="e")
 
-        scale = screen_scale * max(0.9, min(1.35, window_ratio / normal_ratio))
-        return max(0.9, min(1.5, scale))
+        self.font_label = tk.Label(
+            self.font_frame,
+            text="Texto",
+            font=self.font_small,
+        )
+        self.font_label.grid(row=0, column=0, sticky="w")
 
-    def _apply_scale(self):
-        self.ui_scale = self._compute_scale()
+        self.font_spin = tk.Spinbox(
+            self.font_frame,
+            from_=self.MIN_FONT_SIZE,
+            to=self.MAX_FONT_SIZE,
+            textvariable=self.font_size_var,
+            width=5,
+            font=self.font_small,
+            command=self.apply_font_size_from_control,
+        )
+        self.font_spin.grid(row=0, column=1)
 
-        self.font_title.configure(size=self._px(13))
-        self.font_normal.configure(size=self._px(10))
-        self.font_button.configure(size=self._px(10))
-        self.font_status.configure(size=self._px(10))
+        self.btn_font_minus = tk.Button(
+            self.font_frame,
+            text="−",
+            width=3,
+            font=self.font_small,
+            command=lambda: self.change_font_size(-1),
+        )
+        self.btn_font_minus.grid(row=0, column=2)
 
-        pad = self._px(16)
-        gap = self._px(8)
-        big_gap = self._px(16)
+        self.btn_font_plus = tk.Button(
+            self.font_frame,
+            text="+",
+            width=3,
+            font=self.font_small,
+            command=lambda: self.change_font_size(1),
+        )
+        self.btn_font_plus.grid(row=0, column=3)
 
-        self.main.configure(padding=pad)
+        self.font_spin.bind("<Return>", lambda _: self.apply_font_size_from_control())
+        self.font_spin.bind("<FocusOut>", lambda _: self.apply_font_size_from_control())
+
+    def _font_size(self):
+        try:
+            value = int(self.font_size_var.get())
+        except ValueError:
+            value = 14
+
+        return max(self.MIN_FONT_SIZE, min(self.MAX_FONT_SIZE, value))
+
+    def _set_font_size(self, value):
+        value = max(self.MIN_FONT_SIZE, min(self.MAX_FONT_SIZE, int(value)))
+        self.font_size_var.set(str(value))
+        self._apply_font_size()
+
+    def change_font_size(self, delta):
+        self._set_font_size(self._font_size() + delta)
+
+    def apply_font_size_from_control(self):
+        self._set_font_size(self._font_size())
+
+    def _apply_font_size(self):
+        size = self._font_size()
+
+        self.font_title.configure(size=size + 4)
+        self.font_text.configure(size=size)
+        self.font_button.configure(size=size)
+        self.font_small.configure(size=max(self.MIN_FONT_SIZE, size - 2))
+
+        pad = max(12, int(size * 1.2))
+        gap = max(6, int(size * 0.6))
+        big_gap = max(12, int(size * 1.1))
+
+        self.main.configure(padx=pad, pady=pad)
 
         self.title_label.grid_configure(pady=(0, big_gap))
-        self.btn_quality.grid_configure(pady=(0, gap))
-        self.btn_convert.grid_configure(pady=(0, gap))
-        self.btn_cancel.grid_configure(pady=(0, big_gap))
+        self.btn_quality.grid_configure(pady=(0, gap), ipady=gap)
+        self.btn_convert.grid_configure(pady=(0, gap), ipady=gap)
+        self.btn_cancel.grid_configure(pady=(0, big_gap), ipady=gap)
         self.progress.grid_configure(pady=(0, gap))
+        self.bottom.grid_configure(pady=(big_gap, 0))
 
-        wrap = max(220, self.winfo_width() - 2 * pad)
-        self.status_label.configure(wraplength=wrap)
+        self.help_bar.grid_configure(ipadx=gap, ipady=max(3, gap // 2), padx=(0, gap))
+        self.font_label.grid_configure(padx=(0, gap))
+        self.font_spin.grid_configure(padx=(0, gap))
+        self.btn_font_minus.grid_configure(padx=(0, gap))
+
+        self._update_wraplength()
+        self.update_idletasks()
+
+    def _update_wraplength(self):
+        width = max(240, self.winfo_width() - 80)
+        self.status_label.configure(wraplength=width)
+
+        help_width = max(240, self.winfo_width() - 260)
+        self.help_bar.configure(wraplength=help_width)
 
     def _on_resize(self, event):
         if event.widget is self:
-            self._apply_scale()
+            self._update_wraplength()
 
     def show_quality_settings(self):
         top = tk.Toplevel(self)
@@ -190,73 +266,55 @@ class ConverterGUI(tk.Tk):
         top.transient(self)
 
         screen_w, screen_h = self._screen_size()
-        width = max(360, int(screen_w * 0.28))
-        height = max(170, int(screen_h * 0.16))
+        width = max(420, int(screen_w * 0.28))
+        height = max(140, int(screen_h * 0.14))
 
         width = min(width, int(screen_w * 0.8))
-        height = min(height, int(screen_h * 0.5))
+        height = min(height, int(screen_h * 0.45))
 
         top.geometry(self._geometry_centered(width, height))
-        top.minsize(340, 160)
+        top.minsize(380, 130)
         top.resizable(True, False)
 
         top.columnconfigure(0, weight=1)
         top.rowconfigure(0, weight=1)
 
-        frame = ttk.Frame(top, padding=self._px(12))
+        frame = tk.Frame(top)
         frame.grid(row=0, column=0, sticky="nsew")
 
         frame.columnconfigure(1, weight=1)
         frame.columnconfigure(3, weight=1)
-        frame.rowconfigure(1, weight=1)
 
-        ttk.Label(frame, text="CRF").grid(row=0, column=0, sticky="w")
+        size = self._font_size()
+        pad = max(12, int(size * 1.2))
+        gap = max(6, int(size * 0.6))
 
-        crf_entry = ttk.Entry(frame, width=6)
+        frame.configure(padx=pad, pady=pad)
+
+        tk.Label(frame, text="CRF", font=self.font_text).grid(
+            row=0,
+            column=0,
+            sticky="w",
+        )
+
+        crf_entry = tk.Entry(frame, width=6, font=self.font_text)
         crf_entry.insert(0, self.crf_value)
-        crf_entry.grid(row=0, column=1, sticky="ew", padx=(self._px(6), self._px(12)))
+        crf_entry.grid(row=0, column=1, sticky="ew", padx=(gap, gap * 2))
 
-        ttk.Label(frame, text="Preset").grid(row=0, column=2, sticky="w")
-
-        preset_combo = ttk.Combobox(frame, values=PRESETS, width=12)
-        preset_combo.set(self.preset_value)
-        preset_combo.grid(row=0, column=3, sticky="ew", padx=(self._px(6), 0))
-
-        help_var = tk.StringVar(
-            value="CRF: menor valor implica mayor calidad y archivos más grandes."
+        tk.Label(frame, text="Preset", font=self.font_text).grid(
+            row=0,
+            column=2,
+            sticky="w",
         )
 
-        help_label = ttk.Label(
+        preset_combo = ttk.Combobox(
             frame,
-            textvariable=help_var,
-            style="Status.TLabel",
-            anchor="center",
-            justify="center",
+            values=PRESETS,
+            width=12,
+            font=self.font_text,
         )
-        help_label.grid(row=1, column=0, columnspan=4, sticky="nsew", pady=self._px(12))
-
-        def update_help_wrap(event):
-            if event.widget is top:
-                help_label.configure(wraplength=max(240, event.width - self._px(48)))
-
-        top.bind("<Configure>", update_help_wrap)
-
-        crf_entry.bind(
-            "<Enter>",
-            lambda _: help_var.set("CRF: calidad del video entre 0 y 51. Menor es mejor."),
-        )
-        crf_entry.bind(
-            "<Leave>",
-            lambda _: help_var.set("CRF: menor valor implica mayor calidad y archivos más grandes."),
-        )
-        preset_combo.bind(
-            "<Enter>",
-            lambda _: help_var.set("Preset: velocidad de codificación contra compresión."),
-        )
-        preset_combo.bind(
-            "<Leave>",
-            lambda _: help_var.set("CRF: menor valor implica mayor calidad y archivos más grandes."),
-        )
+        preset_combo.set(self.preset_value)
+        preset_combo.grid(row=0, column=3, sticky="ew", padx=(gap, 0))
 
         def apply():
             try:
@@ -275,11 +333,18 @@ class ConverterGUI(tk.Tk):
             self.preset_value = preset_combo.get()
             top.destroy()
 
-        ttk.Button(frame, text="Aplicar", command=apply).grid(
-            row=2,
+        tk.Button(
+            frame,
+            text="Aplicar",
+            font=self.font_button,
+            command=apply,
+        ).grid(
+            row=1,
             column=0,
             columnspan=4,
             sticky="ew",
+            pady=(gap * 2, 0),
+            ipady=gap,
         )
 
     def start(self):
@@ -330,10 +395,20 @@ class ConverterGUI(tk.Tk):
             if self.cancel_event.is_set():
                 self.queue.put(("done", ("info", "Conversión cancelada.")))
             elif all(result.success for result in results):
-                self.queue.put(("done", ("askopen", "Conversión completada. ¿Abrir carpeta de salida?")))
+                self.queue.put(
+                    ("done", ("askopen", "Conversión completada. ¿Abrir carpeta de salida?"))
+                )
             else:
                 failed = sum(not result.success for result in results)
-                self.queue.put(("done", ("warning", f"Conversión terminada con {failed} error(es). Revisá el log.")))
+                self.queue.put(
+                    (
+                        "done",
+                        (
+                            "warning",
+                            f"Conversión terminada con {failed} error(es). Revisá el log.",
+                        ),
+                    )
+                )
         except Exception as exc:
             self.logger.exception("Unexpected conversion error")
             self.queue.put(("done", ("error", str(exc))))
@@ -389,7 +464,10 @@ def main():
     if not shutil.which(settings.ffmpeg_bin):
         root = tk.Tk()
         root.withdraw()
-        messagebox.showerror("Error", f"No se encontró '{settings.ffmpeg_bin}' en PATH.")
+        messagebox.showerror(
+            "Error",
+            f"No se encontró '{settings.ffmpeg_bin}' en PATH.",
+        )
         return 1
 
     app = ConverterGUI(settings, logger)

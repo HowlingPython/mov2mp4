@@ -1,8 +1,8 @@
 import argparse
-from dataclasses import replace
-from pathlib import Path
 import sys
 import threading
+from dataclasses import replace
+from pathlib import Path
 
 from .config import PRESETS, load_settings
 from .converter import convert_batch, ensure_ffmpeg
@@ -10,14 +10,22 @@ from .logging_config import configure_logging
 
 
 def build_parser():
-    parser = argparse.ArgumentParser(description="Convert MOV files to MP4 with ffmpeg.")
+    parser = argparse.ArgumentParser(
+        description="Convert MOV files to MP4 with ffmpeg."
+    )
     parser.add_argument("files", nargs="+", help="MOV files to convert")
     parser.add_argument("-o", "--output", default=".", help="Output directory")
-    parser.add_argument("--crf", type=int, default=None, help="Quality from 0 to 51; lower is better")
+    parser.add_argument(
+        "--crf", type=int, default=None, help="Quality from 0 to 51; lower is better"
+    )
     parser.add_argument("--preset", choices=PRESETS, default=None)
     parser.add_argument("--ffmpeg-bin", default=None)
-    parser.add_argument("--threads", type=int, default=None, help="Threads per ffmpeg process")
-    parser.add_argument("--batch-size", type=int, default=None, help="Concurrent conversions")
+    parser.add_argument(
+        "--threads", type=int, default=None, help="Threads per ffmpeg process"
+    )
+    parser.add_argument(
+        "--batch-size", type=int, default=None, help="Concurrent conversions"
+    )
     return parser
 
 
@@ -41,7 +49,9 @@ def main(argv=None):
         return 1
 
     def progress(done, total, result):
-        status = "ok" if result.success else "cancelled" if result.cancelled else "error"
+        status = (
+            "ok" if result.success else "cancelled" if result.cancelled else "error"
+        )
         print(f"[{done}/{total}] {status}: {result.input_path}")
 
     results = convert_batch(

@@ -1,10 +1,11 @@
+import os
 from dataclasses import dataclass
 from pathlib import Path
-import os
 
 try:
     from dotenv import load_dotenv
 except ImportError:
+
     def load_dotenv(*args, **kwargs):
         return False
 
@@ -29,6 +30,7 @@ class Settings:
     batch_size: int
     default_crf: int
     default_preset: str
+    default_font_size: int
     log_file: Path
 
 
@@ -41,6 +43,10 @@ def _int_env(name, default):
 
 def _crf(value):
     return max(0, min(51, value))
+
+
+def _clamp(value, low, high):
+    return max(low, min(high, value))
 
 
 def load_settings(env_file=None):
@@ -66,5 +72,6 @@ def load_settings(env_file=None):
         batch_size=batch_size,
         default_crf=_crf(_int_env("DEFAULT_CRF", 18)),
         default_preset=preset,
+        default_font_size=_clamp(_int_env("DEFAULT_FONT_SIZE", 15), 9, 50),
         log_file=Path.home() / ".mov2mp4_converter.log",
     )

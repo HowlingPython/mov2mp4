@@ -1,11 +1,11 @@
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass
-from pathlib import Path
 import platform
 import shutil
 import subprocess
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
+from pathlib import Path
 
 from .config import PRESETS, Settings
 
@@ -84,7 +84,11 @@ def convert_file(
         return ConversionResult(input_path, output_path, False, True, "cancelled")
 
     cmd = build_ffmpeg_command(input_path, output_path, settings, crf, preset)
-    creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0) if platform.system() == "Windows" else 0
+    creationflags = (
+        getattr(subprocess, "CREATE_NO_WINDOW", 0)
+        if platform.system() == "Windows"
+        else 0
+    )
 
     if logger:
         logger.info("Converting %s -> %s", input_path, output_path)
