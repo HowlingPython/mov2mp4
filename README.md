@@ -1,0 +1,149 @@
+# mov2mp4
+
+Lightweight desktop tool for batch-converting MOV files to MP4 using Python, Tkinter and ffmpeg.
+
+The original use case was converting iPhone-recorded oscillation videos for frame-by-frame analysis in a physics experiment. The project is now organized as a proper Python package with a reusable conversion core, a GUI entry point, a CLI entry point, tests and `uv`-based project management.
+
+## Requirements
+
+The project requires Python `>=3.10`, `uv`, and `ffmpeg` available in `PATH`.
+
+Check that `ffmpeg` is installed:
+
+```bash
+ffmpeg -version
+```
+
+On Ubuntu or Debian:
+
+```bash
+sudo apt install ffmpeg python3-tk
+```
+
+On macOS, using Homebrew:
+
+```bash
+brew install ffmpeg
+```
+
+On Windows, install ffmpeg and make sure the executable is available from PowerShell or CMD.
+
+## Installation
+
+From the repository root:
+
+```bash
+uv sync --extra dev
+```
+
+This creates or updates `.venv`, installs runtime dependencies and installs development dependencies such as `pytest` and `pyinstaller`.
+
+
+After the first successful sync, `uv` generates `uv.lock`. Commit that file to keep dependency resolution reproducible across machines.
+
+You do not need to activate the virtual environment. Use `uv run`.
+
+## Usage
+
+Open the GUI:
+
+```bash
+uv run mov2mp4-gui
+```
+
+Convert files from the command line:
+
+```bash
+uv run mov2mp4 video1.mov video2.mov -o output/
+```
+
+Set quality options from the CLI:
+
+```bash
+uv run mov2mp4 video.mov -o output/ --crf 18 --preset medium
+```
+
+Lower CRF means higher quality and larger files. Valid CRF values are from `0` to `51`.
+
+## GUI workflow
+
+1. Run `uv run mov2mp4-gui`.
+2. Click `Seleccionar y convertir`.
+3. Select one or more `.mov` files.
+4. Select an output folder.
+5. Wait for the progress bar or press `Cancelar` to stop cleanly.
+
+Cancellation kills active `ffmpeg` processes and removes incomplete output files.
+
+## Configuration
+
+Create a `.env` file in the project root to override defaults:
+
+```env
+FFMPEG_BIN=ffmpeg
+FFMPEG_THREADS=2
+BATCH_SIZE=
+DEFAULT_CRF=18
+DEFAULT_PRESET=medium
+```
+
+`BATCH_SIZE` controls how many conversions run at the same time. If it is empty, the project chooses a conservative value from the CPU count and `FFMPEG_THREADS`.
+
+## Project layout
+
+```text
+mov2mp4/
+├── .env.example
+├── .gitignore
+├── .python-version
+├── LICENSE
+├── README.md
+├── pyproject.toml
+├── scripts/
+│   └── mov2mp4_gui.py
+├── src/
+│   └── mov2mp4/
+│       ├── __init__.py
+│       ├── __main__.py
+│       ├── cli.py
+│       ├── config.py
+│       ├── converter.py
+│       ├── gui.py
+│       ├── logging_config.py
+│       └── opener.py
+└── tests/
+    ├── test_config.py
+    └── test_converter.py
+```
+
+`converter.py` contains the conversion logic and knows how to build and run `ffmpeg` commands. `gui.py` contains only Tkinter UI logic. `cli.py` exposes the command-line interface. `config.py` loads environment-based settings. `opener.py` contains platform-specific output-folder opening logic.
+
+## Tests
+
+Run:
+
+```bash
+uv run pytest -q
+```
+
+The tests do not require real MOV files or ffmpeg execution. They validate command construction, configuration parsing and cancellation behavior.
+
+## Building a standalone executable
+
+Build the GUI with PyInstaller:
+
+```bash
+uv run pyinstaller mov2mp4_gui.spec
+```
+
+The executable is written to `dist/`.
+
+The spec file uses `scripts/mov2mp4_gui.py` as a small launcher and includes `src/` in `pathex`, so PyInstaller can find the package.
+
+## Notes on the threading model
+
+Tkinter is not thread-safe. The GUI starts conversion in a background thread and receives progress messages through `queue.Queue`. The UI polls the queue with `after()`, so worker threads never mutate widgets directly.
+
+## License
+
+MIT.

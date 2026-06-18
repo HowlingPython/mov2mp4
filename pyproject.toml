@@ -1,0 +1,31 @@
+[build-system]
+requires = ["uv_build>=0.11.21,<0.12"]
+build-backend = "uv_build"
+
+[project]
+name = "mov2mp4"
+version = "1.0.0"
+description = "Batch MOV to MP4 converter with a Tkinter GUI and ffmpeg backend"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "python-dotenv>=1.0"
+]
+
+[project.scripts]
+mov2mp4 = "mov2mp4.cli:main"
+mov2mp4-gui = "mov2mp4.gui:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pyinstaller>=6"
+]
+
+[tool.uv.build-backend]
+module-name = "mov2mp4"
+module-root = "src"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
