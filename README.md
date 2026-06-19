@@ -188,6 +188,7 @@ mov2mp4/
     ├── test_cli_signals.py
     ├── test_config.py
     ├── test_converter.py
+    ├── test_main_module.py
     └── test_paths.py
 ```
 
