@@ -28,10 +28,3 @@ def test_crf_is_clamped(monkeypatch):
 
     assert settings.default_crf == 51
 
-
-def test_font_size_is_clamped(monkeypatch):
-    monkeypatch.setenv("DEFAULT_FONT_SIZE", "100")
-
-    settings = load_settings()
-
-    assert settings.default_font_size == 32

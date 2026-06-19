@@ -14,7 +14,6 @@ def settings():
         batch_size=2,
         default_crf=18,
         default_preset="medium",
-        default_font_size=15,
         log_file=Path("test.log"),
     )
 
