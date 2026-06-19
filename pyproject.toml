@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "mov2mp4"
-version = "2.2.2"
+version = "2.3.0"
 description = "Batch MOV to MP4 converter with a ffmpeg backend"
 readme = "README.md"
 requires-python = ">=3.10"

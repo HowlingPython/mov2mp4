@@ -1,4 +1,4 @@
-version = 2
+version = 1
 revision = 3
 requires-python = ">=3.10"
 
@@ -34,7 +34,7 @@ wheels = [
 
 [[package]]
 name = "mov2mp4"
-version = "2.2.2"
+version = "2.3.0"
 source = { editable = "." }
 dependencies = [
     { name = "python-dotenv" },

@@ -3,7 +3,7 @@ import shutil
 import subprocess
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import CancelledError, ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -160,7 +160,11 @@ def convert_batch(
         ]
 
         for completed, future in enumerate(as_completed(futures), start=1):
-            result = future.result()
+            try:
+                result = future.result()
+            except CancelledError:
+                continue
+
             results.append(result)
 
             if progress_callback:
@@ -169,5 +173,6 @@ def convert_batch(
             if cancel_event.is_set():
                 for pending in futures:
                     pending.cancel()
-
+                break
+                
     return results

@@ -1,4 +1,5 @@
 import argparse
+import signal
 import sys
 import threading
 from dataclasses import replace
@@ -97,16 +98,41 @@ def main(argv=None):
         )
         print(f"[{done}/{total}] {status}: {result.input_path}")
 
-    results = convert_batch(
-        input_files,
-        Path(args.output),
-        settings,
-        crf=args.crf,
-        preset=args.preset,
-        cancel_event=threading.Event(),
-        progress_callback=progress,
-        logger=logger,
-    )
+    cancel_event = threading.Event()
+    interrupted = False
+    previous_sigint_handler = signal.getsignal(signal.SIGINT)
+
+    def handle_sigint(signum, frame):
+        nonlocal interrupted
+
+        if interrupted:
+            raise KeyboardInterrupt
+
+        interrupted = True
+        cancel_event.set()
+        print(
+            "\nCancelando conversiones activas. Presiona Ctrl+C otra vez para forzar salida.",
+            file=sys.stderr,
+        )
+
+    signal.signal(signal.SIGINT, handle_sigint)
+
+    try:
+        results = convert_batch(
+            input_files,
+            Path(args.output),
+            settings,
+            crf=args.crf,
+            preset=args.preset,
+            cancel_event=cancel_event,
+            progress_callback=progress,
+            logger=logger,
+        )
+    finally:
+        signal.signal(signal.SIGINT, previous_sigint_handler)
+
+    if cancel_event.is_set():
+        return 130
 
     failed = [result for result in results if not result.success]
     return 1 if failed else 0
