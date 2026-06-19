@@ -114,7 +114,7 @@ Lower CRF means higher quality and larger files. Valid range is `0` to `51`.
 | `--threads` | Threads per ffmpeg process |
 | `--batch-size` | Concurrent conversions |
 
-Without `--pattern`, directory scans default to matching `*.mov` (case-insensitive). Files passed directly as positional arguments are included even if they don't match the pattern. Duplicate paths reached through more than one input (e.g. a file passed directly and also found via `-d`) are converted once.
+Without `--pattern`, directory scans default to matching `*.mov` (case-insensitive). Without --pattern, directory scans and positional files default to matching *.mov case-insensitively. Files that do not match the active pattern are ignored. Duplicate paths reached through more than one input are converted once.
 
 ## Cancellation
 
@@ -161,7 +161,7 @@ CLI flags take precedence over `.env` values.
 uv run pytest -q
 ```
 
-34 tests, no real MOV files or `ffmpeg` required. They cover command construction, configuration parsing, input resolution (file/directory/pattern handling), batch conversion with a faked subprocess, the CLI's argument handling and exit codes and `Ctrl+C` cancellation, including the second-press force-exit path and that the previous signal handler is restored afterward.
+35 tests, no real MOV files or `ffmpeg` required. They cover command construction, configuration parsing, input resolution (file/directory/pattern handling), batch conversion with a faked subprocess, the CLI's argument handling and exit codes, `python -m mov2mp4` propagates `main()`'s exit code correctly, and `Ctrl+C` cancellation, including the second-press force-exit path and restoration of the previous signal handler.
 
 ## Project layout
 
