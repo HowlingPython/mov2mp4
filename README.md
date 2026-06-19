@@ -52,7 +52,7 @@ or
 uv sync --extra dev
 ```
 
-This creates `.venv`, installs runtime dependencies if the first one is used. The second one also installs development dependencies (`pytest`).
+This creates `.venv` and installs runtime dependencies if the first one is used. The second one also installs development dependencies (`pytest`).
 
 You do not need to activate the virtual environment, use `uv run`.
 
