@@ -183,28 +183,6 @@ Tkinter is not thread-safe. The GUI starts conversion in a background thread and
 
 The UI polls the queue with `after()`, so worker threads never mutate widgets directly. This keeps the interface responsive while conversions are running.
 
-## Git hygiene
-
-The repository should not track generated files, local environments or converted videos.
-
-The `.gitignore` should exclude at least:
-
-```text
-__pycache__/
-*.pyc
-.pytest_cache/
-.venv/
-*.egg-info/
-build/
-dist/
-*.mov
-*.mp4
-*.log
-.env
-```
-
-Do not ignore `uv.lock`. It should be committed.
-
 ## License
 
 MIT.
