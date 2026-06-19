@@ -12,7 +12,7 @@ from .opener import open_folder
 
 
 class ConverterGUI(tk.Tk):
-    NORMAL_AREA_RATIO = 0.04
+    WINDOW_AREA_RATIO = 0.04
     MIN_FONT_SIZE = 9
     MAX_FONT_SIZE = 32
 
@@ -26,9 +26,7 @@ class ConverterGUI(tk.Tk):
         self.out_dir = None
         self.crf_value = str(settings.default_crf)
         self.preset_value = settings.default_preset
-
-        default_font_size = getattr(settings, "default_font_size", 14)
-        self.font_size_var = tk.StringVar(value=str(default_font_size))
+        self.font_size_var = tk.StringVar(value=str(self._initial_font_size()))
 
         self.title("MOV → MP4 Converter")
         self.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -44,6 +42,20 @@ class ConverterGUI(tk.Tk):
         self.update_idletasks()
         return self.winfo_screenwidth(), self.winfo_screenheight()
 
+    def _initial_font_size(self):
+        base = getattr(self.settings, "default_font_size", 15)
+        try:
+            base = int(base)
+        except (TypeError, ValueError):
+            base = 15
+
+        screen_w = self.winfo_screenwidth()
+        screen_h = self.winfo_screenheight()
+        screen_scale = min(screen_w / 1920, screen_h / 1080)
+        screen_scale = max(1.0, min(1.35, screen_scale))
+        value = round(base * screen_scale)
+        return max(self.MIN_FONT_SIZE, min(self.MAX_FONT_SIZE, value))
+
     def _geometry_centered(self, width, height):
         screen_w, screen_h = self._screen_size()
         x = max(0, (screen_w - width) // 2)
@@ -52,16 +64,16 @@ class ConverterGUI(tk.Tk):
 
     def _configure_window(self):
         screen_w, screen_h = self._screen_size()
+        side_ratio = self.WINDOW_AREA_RATIO ** 0.5
 
-        side_ratio = self.NORMAL_AREA_RATIO ** 0.5
         width = int(screen_w * side_ratio)
         height = int(screen_h * side_ratio)
 
-        width = max(520, min(width, int(screen_w * 0.95)))
-        height = max(320, min(height, int(screen_h * 0.90)))
+        width = max(560, min(width, int(screen_w * 0.95)))
+        height = max(340, min(height, int(screen_h * 0.90)))
 
-        min_width = min(width, max(440, int(screen_w * 0.25)))
-        min_height = min(height, max(280, int(screen_h * 0.22)))
+        min_width = min(width, max(460, int(screen_w * 0.25)))
+        min_height = min(height, max(300, int(screen_h * 0.22)))
 
         self.geometry(self._geometry_centered(width, height))
         self.minsize(min_width, min_height)
@@ -74,10 +86,10 @@ class ConverterGUI(tk.Tk):
         default = tkfont.nametofont("TkDefaultFont")
         family = default.actual("family")
 
-        self.font_title = tkfont.Font(family=family, size=18, weight="bold")
-        self.font_text = tkfont.Font(family=family, size=14)
-        self.font_button = tkfont.Font(family=family, size=14)
-        self.font_small = tkfont.Font(family=family, size=12)
+        self.font_title = tkfont.Font(family=family, size=19, weight="bold")
+        self.font_text = tkfont.Font(family=family, size=15)
+        self.font_button = tkfont.Font(family=family, size=15)
+        self.font_small = tkfont.Font(family=family, size=13)
 
     def _build_layout(self):
         self.main = tk.Frame(self)
@@ -89,8 +101,8 @@ class ConverterGUI(tk.Tk):
         self.status_var = tk.StringVar(value="Listo.")
         self.help_var = tk.StringVar(
             value=(
-                "CRF: 0–51, menor valor implica mayor calidad y archivos más grandes. "
-                "Preset: controla velocidad de codificación contra compresión."
+                "CRF: 0–51; menor valor implica mayor calidad y archivos más grandes. "
+                "Preset: velocidad de codificación vs compresión."
             )
         )
 
@@ -145,7 +157,6 @@ class ConverterGUI(tk.Tk):
 
         self.bottom = tk.Frame(self.main)
         self.bottom.grid(row=6, column=0, sticky="ew")
-
         self.bottom.columnconfigure(0, weight=1)
         self.bottom.columnconfigure(1, weight=0)
 
@@ -204,10 +215,10 @@ class ConverterGUI(tk.Tk):
     def _font_size(self):
         try:
             value = int(self.font_size_var.get())
-        except ValueError:
-            value = 14
+        except (TypeError, ValueError):
+            value = getattr(self.settings, "default_font_size", 15)
 
-        return max(self.MIN_FONT_SIZE, min(self.MAX_FONT_SIZE, value))
+        return max(self.MIN_FONT_SIZE, min(self.MAX_FONT_SIZE, int(value)))
 
     def _set_font_size(self, value):
         value = max(self.MIN_FONT_SIZE, min(self.MAX_FONT_SIZE, int(value)))
@@ -269,7 +280,7 @@ class ConverterGUI(tk.Tk):
         width = max(420, int(screen_w * 0.28))
         height = max(140, int(screen_h * 0.14))
 
-        width = min(width, int(screen_w * 0.8))
+        width = min(width, int(screen_w * 0.80))
         height = min(height, int(screen_h * 0.45))
 
         top.geometry(self._geometry_centered(width, height))

@@ -8,6 +8,8 @@ The original use case was converting iPhone-recorded oscillation videos for fram
 
 * Batch conversion of multiple `.mov` files.
 * Dynamic GUI built with Tkinter.
+* Runtime font-size control in the main window.
+* Permanent help bar for CRF and preset settings.
 * CLI entry point for terminal-based conversion.
 * Multithreaded conversion using `ThreadPoolExecutor`.
 * Clean cancellation of active conversions.
@@ -91,9 +93,11 @@ Cancellation kills active `ffmpeg` processes and removes incomplete output files
 
 The GUI is dynamically sized from the current screen. In normal window mode, it starts at approximately `20%` of the available screen area, centered on screen.
 
-The window is resizable. Buttons, progress bar and status text expand with the window. Status text wraps dynamically, so longer messages remain readable instead of being cut off.
+The window is resizable. Buttons, progress bar, status text and the bottom help bar expand with the window. Status and help text wrap dynamically, so longer messages remain readable instead of being cut off.
 
-The quality settings window is also dynamic. It scales from the current screen, supports horizontal resizing and keeps help text readable through wrapped labels.
+The bottom of the main window contains a font-size control. Use the spinbox or the `+` and `−` buttons to change the GUI text size while the app is running. The default value comes from `DEFAULT_FONT_SIZE`.
+
+The quality settings window is also dynamic. It scales from the current screen and supports horizontal resizing. The CRF and preset explanation stays in the main help bar instead of changing on hover.
 
 ## Configuration
 
@@ -118,7 +122,7 @@ DEFAULT_FONT_SIZE=15
 
 `DEFAULT_PRESET` controls encoding speed versus compression efficiency.
 
-`DEFAULT_FONT_SIZE` controls the default text size in the app.
+`DEFAULT_FONT_SIZE` controls the default text size in the app. The GUI clamps it to a readable range and can also scale it upward on high-resolution screens.
 
 ## Tests
 
@@ -175,7 +179,7 @@ mov2mp4/
 
 `converter.py` contains the conversion logic and knows how to build and run `ffmpeg` commands.
 
-`gui.py` contains the Tkinter UI logic, including the dynamic layout and thread-safe queue polling.
+`gui.py` contains the Tkinter UI logic, including the dynamic layout, runtime font-size control, static help bar and thread-safe queue polling.
 
 `cli.py` exposes the command-line interface.
 
