@@ -44,10 +44,6 @@ def _crf(value):
     return max(0, min(51, value))
 
 
-def _clamp(value, low, high):
-    return max(low, min(high, value))
-
-
 def load_settings(env_file=None):
     load_dotenv(env_file)
 

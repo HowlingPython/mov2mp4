@@ -98,7 +98,7 @@ def main(argv=None):
         print(f"[{done}/{total}] {status}: {result.input_path}")
 
     results = convert_batch(
-        args.files,
+        input_files,
         Path(args.output),
         settings,
         crf=args.crf,

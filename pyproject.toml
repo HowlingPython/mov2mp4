@@ -4,8 +4,8 @@ build-backend = "uv_build"
 
 [project]
 name = "mov2mp4"
-version = "2.2.1"
-description = "Batch MOV to MP4 converter with a Tkinter GUI and ffmpeg backend"
+version = "2.2.2"
+description = "Batch MOV to MP4 converter with a ffmpeg backend"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -14,12 +14,10 @@ dependencies = [
 
 [project.scripts]
 mov2mp4 = "mov2mp4.cli:main"
-mov2mp4-gui = "mov2mp4.gui:main"
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8",
-    "pyinstaller>=6"
 ]
 
 [tool.uv.build-backend]
