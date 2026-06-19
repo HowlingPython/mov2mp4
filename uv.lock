@@ -34,7 +34,7 @@ wheels = [
 
 [[package]]
 name = "mov2mp4"
-version = "2.3.0"
+version = "2.3.1"
 source = { editable = "." }
 dependencies = [
     { name = "python-dotenv" },
