@@ -49,11 +49,14 @@ class ConverterGUI(tk.Tk):
         except (TypeError, ValueError):
             base = 15
 
-        screen_w = self.winfo_screenwidth()
-        screen_h = self.winfo_screenheight()
-        screen_scale = min(screen_w / 1920, screen_h / 1080)
-        screen_scale = max(1.0, min(1.35, screen_scale))
-        value = round(base * screen_scale)
+        try:
+            self.update_idletasks()
+            ppi = self.winfo_fpixels('1i')      # pixels per inch as Tk actually measures it
+            scale = max(1.0, min(2.0, ppi / 96.0))   # 96 DPI is the standard baseline
+        except Exception:
+            scale = 1.0
+
+        value = round(base * scale)
         return max(self.MIN_FONT_SIZE, min(self.MAX_FONT_SIZE, value))
 
     def _geometry_centered(self, width, height):
@@ -85,11 +88,12 @@ class ConverterGUI(tk.Tk):
     def _configure_fonts(self):
         default = tkfont.nametofont("TkDefaultFont")
         family = default.actual("family")
+        size = self._font_size()
 
-        self.font_title = tkfont.Font(family=family, size=19, weight="bold")
-        self.font_text = tkfont.Font(family=family, size=15)
-        self.font_button = tkfont.Font(family=family, size=15)
-        self.font_small = tkfont.Font(family=family, size=13)
+        self.font_title = tkfont.Font(family=family, size=size + 4, weight="bold")
+        self.font_text = tkfont.Font(family=family, size=size)
+        self.font_button = tkfont.Font(family=family, size=size)
+        self.font_small = tkfont.Font(family=family, size=max(self.MIN_FONT_SIZE, size - 2))
 
     def _build_layout(self):
         self.main = tk.Frame(self)

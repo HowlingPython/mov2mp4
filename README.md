@@ -110,7 +110,7 @@ DEFAULT_FONT_SIZE=15
 
 `DEFAULT_PRESET` controls encoding speed versus compression efficiency.
 
-`DEFAULT_FONT_SIZE` controls the default text size in the app. The GUI clamps it to a readable range and can also scale it upward on high-resolution screens. (Currently Broken)
+`DEFAULT_FONT_SIZE` controls the default text size in the app. The GUI clamps it to a readable range and scales it upward on high-DPI screens using the display's actual pixels-per-inch value.
 
 ## Tests
 
